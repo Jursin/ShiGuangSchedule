@@ -213,6 +213,14 @@ class StyleSettingsViewModel(
         styleRepository.setRemoveLocationAt(remove)
     }
 
+    fun updateCenterCourseContent(center: Boolean) = viewModelScope.launch {
+        styleRepository.setCenterCourseContent(center)
+    }
+
+    fun updateDimNonCurrentWeekCourses(dim: Boolean) = viewModelScope.launch {
+        styleRepository.setDimNonCurrentWeekCourses(dim)
+    }
+
     /**
      * 更新普通课程的主色
      * @param index UI 传递过来的颜色索引

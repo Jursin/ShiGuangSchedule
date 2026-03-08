@@ -5,6 +5,18 @@ import androidx.compose.ui.graphics.toArgb
 import com.xingheyuzhuan.shiguangschedule.data.model.schedule_style.DualColorProto
 import com.xingheyuzhuan.shiguangschedule.data.model.schedule_style.ScheduleGridStyleProto
 
+private fun ScheduleGridStyleProto.getProtoBooleanOrDefault(getterName: String, defaultValue: Boolean): Boolean {
+    return runCatching {
+        javaClass.getMethod(getterName).invoke(this) as Boolean
+    }.getOrDefault(defaultValue)
+}
+
+private fun ScheduleGridStyleProto.Builder.trySetProtoBoolean(setterName: String, value: Boolean) {
+    runCatching {
+        javaClass.getMethod(setterName, java.lang.Boolean.TYPE).invoke(this, value)
+    }
+}
+
 // 1. Compose 业务模型
 
 /**
@@ -44,6 +56,8 @@ data class ScheduleGridStyle(
     val hideLocation: Boolean = false,
     val hideTeacher: Boolean = false,
     val removeLocationAt: Boolean = false,
+    val centerCourseContent: Boolean = false,
+    val dimNonCurrentWeekCourses: Boolean = false,
 
     // 背景壁纸路径 (存储在私有目录下的绝对路径)
     val backgroundImagePath: String? = null
@@ -105,6 +119,8 @@ data class ScheduleGridStyle(
             hideLocation = false,
             hideTeacher = false,
             removeLocationAt = false,
+            centerCourseContent = false,
+            dimNonCurrentWeekCourses = false,
             backgroundImagePath = null
         )
     }
@@ -161,8 +177,9 @@ fun ScheduleGridStyleProto.toCompose(): ScheduleGridStyle {
         hideLocation = this.hideLocation,
         hideTeacher = this.hideTeacher,
         removeLocationAt = this.removeLocationAt,
+        centerCourseContent = this.getProtoBooleanOrDefault("getCenterCourseContent", d.centerCourseContent),
+        dimNonCurrentWeekCourses = this.getProtoBooleanOrDefault("getDimNonCurrentWeekCourses", d.dimNonCurrentWeekCourses),
 
-        // 6. 背景图路径映射 (空字符串转 null)
         backgroundImagePath = if (this.backgroundImagePath.isNullOrEmpty()) null else this.backgroundImagePath
     )
 }
@@ -192,6 +209,8 @@ fun ScheduleGridStyle.toProto(): ScheduleGridStyleProto {
         hideLocation = this@toProto.hideLocation
         hideTeacher = this@toProto.hideTeacher
         removeLocationAt = this@toProto.removeLocationAt
+        trySetProtoBoolean("setCenterCourseContent", this@toProto.centerCourseContent)
+        trySetProtoBoolean("setDimNonCurrentWeekCourses", this@toProto.dimNonCurrentWeekCourses)
 
         // 将 null 映射回空字符串写入 Proto
         backgroundImagePath = this@toProto.backgroundImagePath ?: ""

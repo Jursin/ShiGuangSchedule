@@ -25,6 +25,10 @@
     <string name="nav_course_schedule">Schedule</string>
     <string name="nav_settings">Settings</string>
     <string name="title_today_schedule">Today\'s schedule</string>
+    <string name="today_period_morning">Morning</string>
+    <string name="today_period_noon">Noon</string>
+    <string name="today_period_afternoon">Afternoon</string>
+    <string name="today_period_evening">Evening</string>
     <string name="text_no_courses_today">No courses today</string>
     <string name="title_vacation_until_start">On vacation (%1$s days until semester starts)</string>
     <string name="title_semester_not_set">Please set semester start date</string>
@@ -175,6 +179,9 @@
     <!-- Settings Options -->
     <string name="title_schedule_settings">Schedule settings</string>
     <string name="section_title_general_settings">General settings</string>
+    <string name="item_launch_page">Launch page</string>
+    <string name="desc_launch_page">Set the page opened by default when the app starts</string>
+    <string name="dialog_title_set_launch_page">Set launch page</string>
     <string name="item_show_weekends">Show weekends</string>
     <string name="desc_show_weekends">When enabled, weekend courses will be displayed</string>
     <string name="item_set_start_date">Set semester start date</string>
@@ -307,6 +314,7 @@
     <string name="label_special_thanks">Special thanks</string>
     <string name="text_acknowledgment_body">Heartfelt thanks to every developer who contributed to this app and the academic system adapter repository. Your dedication drives continuous improvement!</string>
     <string name="item_github_repo">Project GitHub repository</string>
+    <string name="item_open_website">Open Website</string>
     <string name="item_open_source_licenses">View open source licenses</string>
     <string name="title_open_source_licenses">Open source licenses</string>
     <string name="item_update_repo">Update academic adapter repository</string>
@@ -441,6 +449,9 @@
     <string name="style_category_grid_size">Grid Size</string>
     <string name="style_category_course_block">Course Block Settings</string>
     <string name="style_category_color_scheme">Color Scheme (Tap circle to edit)</string>
+    <string name="label_section_height">Section Row Height</string>
+    <string name="label_time_column_width">Time Column Width</string>
+    <string name="label_day_header_height">Day Header Height</string>
     <string name="label_wallpaper">Schedule Wallpaper</string>
     <string name="desc_wallpaper_set">Set (Long press to clear)</string>
     <string name="desc_wallpaper_unset">Not set (Tap to select image)</string>
@@ -448,9 +459,8 @@
     <string name="label_hide_date_under_day">Hide date (below day of week)</string>
     <string name="label_hide_grid_lines">Hide Grid Lines</string>
     <string name="label_show_start_time">Show start time on course cells</string>
-    <string name="label_section_height">Grid Height</string>
-    <string name="label_time_column_width">Sidebar Width</string>
-    <string name="label_day_header_height">Top Header Height</string>
+    <string name="label_center_course_content">Center content</string>
+    <string name="label_dim_non_current_week_courses">Dim non-current-week courses</string>
     <string name="label_hide_location">Hide Location</string>
     <string name="label_hide_teacher">Hide Teacher</string>
     <string name="label_remove_location_at">Remove @ symbol before location</string>
@@ -489,5 +499,8 @@
     <string name="quick_delete_success">Schedule cleared successfully</string>
     <string name="error_load_failed">Failed to initialize, please try again</string>
     <string name="error_op_failed">Operation failed: %1$s</string>
+    <string name="label_non_current_week">(Not this week)</string>
+    <string name="text_header_year_format">%1$d</string>
 
 </resources>
+

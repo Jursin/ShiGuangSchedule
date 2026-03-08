@@ -35,6 +35,7 @@ class AppSettingsRepository(
         skippedDates = null,
         autoModeEnabled = false,
         autoControlMode = "DND",
+        launchPageRoute = "course_schedule"
     )
 
     /**

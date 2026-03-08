@@ -15,7 +15,9 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringArrayResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.times
@@ -44,6 +46,8 @@ fun ScheduleGrid(
     showWeekends: Boolean,
     todayIndex: Int,
     firstDayOfWeek: Int,
+    headerYear: Int? = null,
+    displayWeekNumber: Int? = null,
     onCourseBlockClicked: (MergedCourseBlock) -> Unit,
     onGridCellClicked: (Int, Int) -> Unit,
     onTimeSlotClicked: () -> Unit
@@ -74,7 +78,7 @@ fun ScheduleGrid(
         }
 
         Column(Modifier.fillMaxSize()) {
-            DayHeader(style, displayDays, dates, cellWidth, todayIndex, gridLineColor)
+            DayHeader(style, displayDays, dates, headerYear, cellWidth, todayIndex, gridLineColor)
 
             Row(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
                 TimeColumn(style, timeSlots, onTimeSlotClicked, Modifier.height(totalGridHeight), gridLineColor)
@@ -103,6 +107,7 @@ fun ScheduleGrid(
                             CourseBlock(
                                 mergedBlock = item.rawData,
                                 style = style,
+                                isCurrentWeek = item.rawData.isCurrentWeek,
                                 startTime = item.rawData.courses.firstOrNull()?.course?.let {
                                     if(it.isCustomTime) it.customStartTime
                                     else timeSlots.find { ts -> ts.number == it.startSection }?.startTime
@@ -119,19 +124,45 @@ fun ScheduleGrid(
 // 子组件
 
 @Composable
-private fun DayHeader(style: ScheduleGridStyleComposed, displayDays: List<String>, dates: List<String>, cellWidth: Dp, todayIndex: Int, lineColor: Color) {
-    Row(Modifier.fillMaxWidth().height(style.dayHeaderHeight).drawBehind {
-        // 表头底部横线
-        if (!style.hideGridLines) {
-            drawLine(lineColor, Offset(0f, size.height), Offset(size.width, size.height), 1f)
-        }
-    }) {
-        Spacer(Modifier.width(style.timeColumnWidth).fillMaxHeight().drawBehind {
-            // 时间轴右侧分割线
+private fun DayHeader(
+    style: ScheduleGridStyleComposed,
+    displayDays: List<String>,
+    dates: List<String>,
+    headerYear: Int?,
+    cellWidth: Dp,
+    todayIndex: Int,
+    lineColor: Color
+) {
+    Row(
+        Modifier.fillMaxWidth().height(style.dayHeaderHeight).drawBehind {
+            // 表头底部横线
             if (!style.hideGridLines) {
-                drawLine(lineColor, Offset(size.width, 0f), Offset(size.width, size.height), 1f)
+                drawLine(lineColor, Offset(0f, size.height), Offset(size.width, size.height), 1f)
             }
-        })
+        }
+    ) {
+        Box(
+            modifier = Modifier
+                .width(style.timeColumnWidth)
+                .fillMaxHeight()
+                .drawBehind {
+                    // 时间轴右侧分割线
+                    if (!style.hideGridLines) {
+                        drawLine(lineColor, Offset(size.width, 0f), Offset(size.width, size.height), 1f)
+                    }
+                },
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = "${headerYear ?: java.time.LocalDate.now().year}年",
+                maxLines = 1,
+                softWrap = false,
+                overflow = TextOverflow.Clip,
+                fontSize = 10.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+
         displayDays.forEachIndexed { index, day ->
             Box(Modifier.width(cellWidth).fillMaxHeight()
                 .background(if (index == todayIndex) MaterialTheme.colorScheme.primaryContainer.copy(0.4f) else Color.Transparent)
@@ -162,18 +193,32 @@ private fun DayHeader(style: ScheduleGridStyleComposed, displayDays: List<String
 }
 
 @Composable
-private fun TimeColumn(style: ScheduleGridStyleComposed, timeSlots: List<TimeSlot>, onTimeSlotClicked: () -> Unit, modifier: Modifier, lineColor: Color) {
+private fun TimeColumn(
+    style: ScheduleGridStyleComposed,
+    timeSlots: List<TimeSlot>,
+    onTimeSlotClicked: () -> Unit,
+    modifier: Modifier,
+    lineColor: Color
+) {
     Column(modifier.width(style.timeColumnWidth).drawBehind {
         if (!style.hideGridLines) {
             drawLine(lineColor, Offset(size.width, 0f), Offset(size.width, size.height), 1f)
         }
     }) {
         timeSlots.forEach { slot ->
-            Column(Modifier.fillMaxWidth().height(style.sectionHeight).clickable { onTimeSlotClicked() }.drawBehind {
-                if (!style.hideGridLines) {
-                    drawLine(lineColor, Offset(0f, size.height), Offset(size.width, size.height), 1f)
-                }
-            }, horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+            Column(
+                Modifier
+                    .fillMaxWidth()
+                    .height(style.sectionHeight)
+                    .clickable { onTimeSlotClicked() }
+                    .drawBehind {
+                        if (!style.hideGridLines) {
+                            drawLine(lineColor, Offset(0f, size.height), Offset(size.width, size.height), 1f)
+                        }
+                    },
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
                 Text(
                     text = slot.number.toString(),
                     fontSize = 16.sp,
@@ -183,12 +228,14 @@ private fun TimeColumn(style: ScheduleGridStyleComposed, timeSlots: List<TimeSlo
                 if (!style.hideSectionTime) {
                     Text(
                         text = slot.startTime,
-                        fontSize = 10.sp,
+                        fontSize = 9.sp,
+                        style = TextStyle(lineHeight = 9.sp),
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Text(
                         text = slot.endTime,
-                        fontSize = 10.sp,
+                        fontSize = 9.sp,
+                        style = TextStyle(lineHeight = 9.sp),
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }

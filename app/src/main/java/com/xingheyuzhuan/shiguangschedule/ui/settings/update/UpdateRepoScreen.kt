@@ -300,12 +300,19 @@ fun LogDisplayCard(logs: String) {
                         .height(300.dp),
                     color = MaterialTheme.colorScheme.surfaceVariant
                 ) {
+                    val scrollState = rememberScrollState()
+
+                    // Auto-scroll to bottom when logs change
+                    androidx.compose.runtime.LaunchedEffect(logs) {
+                        scrollState.animateScrollTo(scrollState.maxValue)
+                    }
+
                     Text(
                         text = logs,
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(8.dp)
-                            .verticalScroll(rememberScrollState()),
+                            .verticalScroll(scrollState),
                         fontFamily = FontFamily.Monospace,
                         fontSize = 12.sp
                     )

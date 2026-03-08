@@ -29,6 +29,7 @@ import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -63,6 +64,7 @@ fun SettingsScreen(
     navController: NavHostController,
     viewModel: SettingsViewModel = viewModel(factory = SettingsViewModelFactory)
 ) {
+    val appSettings by viewModel.appSettingsState.collectAsState()
     val courseTableConfig by viewModel.courseTableConfigState.collectAsState()
     val currentBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = currentBackStackEntry?.destination?.route
@@ -84,6 +86,9 @@ fun SettingsScreen(
         }
     }
 
+    val launchPageRoute = appSettings.launchPageRoute
+
+    var showLaunchPageDialog by remember { mutableStateOf(false) }
     var showTotalWeeksDialog by remember { mutableStateOf(false) }
     var showManualWeekDialog by remember { mutableStateOf(false) }
     var showDatePickerModal by remember { mutableStateOf(false) }
@@ -114,7 +119,9 @@ fun SettingsScreen(
             item {
                 // 通用设置卡片
                 GeneralSettingsSection(
+                    launchPageRoute = launchPageRoute,
                     showWeekends = showWeekends,
+                    onLaunchPageClick = { showLaunchPageDialog = true },
                     onShowWeekendsChanged = { isChecked -> viewModel.onShowWeekendsChanged(isChecked) },
                     semesterStartDate = semesterStartDate,
                     semesterTotalWeeks = semesterTotalWeeks,
@@ -139,6 +146,17 @@ fun SettingsScreen(
                 AdvancedSettingsSection(navController)
             }
         }
+    }
+
+    if (showLaunchPageDialog) {
+        LaunchPagePickerDialog(
+            initialRoute = launchPageRoute,
+            onDismiss = { showLaunchPageDialog = false },
+            onConfirm = { selectedRoute ->
+                viewModel.onLaunchPageSelected(selectedRoute)
+                showLaunchPageDialog = false
+            }
+        )
     }
 
     if (showDatePickerModal) {
@@ -192,7 +210,9 @@ fun SettingsScreen(
  */
 @Composable
 private fun GeneralSettingsSection(
+    launchPageRoute: String,
     showWeekends: Boolean,
+    onLaunchPageClick: () -> Unit,
     onShowWeekendsChanged: (Boolean) -> Unit,
     semesterStartDate: LocalDate?,
     semesterTotalWeeks: Int,
@@ -217,6 +237,22 @@ private fun GeneralSettingsSection(
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold
             )
+
+            // 启动页面设置项
+            SettingItem(
+                title = stringResource(R.string.item_launch_page),
+                subtitle = stringResource(R.string.desc_launch_page),
+                onClick = onLaunchPageClick
+            ) {
+                val launchPageText = when (launchPageRoute) {
+                    Screen.TodaySchedule.route -> stringResource(R.string.nav_today_schedule)
+                    else -> stringResource(R.string.nav_course_schedule)
+                }
+                Text(
+                    text = launchPageText,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
 
             // 显示周末设置项
             SettingItem(
@@ -448,6 +484,60 @@ fun ManualWeekPickerDialog(
 }
 
 /**
+ * 启动页面选择器对话框
+ */
+@Composable
+fun LaunchPagePickerDialog(
+    initialRoute: String,
+    onDismiss: () -> Unit,
+    onConfirm: (String) -> Unit
+) {
+    val courseScheduleText = stringResource(R.string.nav_course_schedule)
+    val todayScheduleText = stringResource(R.string.nav_today_schedule)
+
+    val pageOptionsMap = linkedMapOf(
+        todayScheduleText to Screen.TodaySchedule.route,
+        courseScheduleText to Screen.CourseSchedule.route
+    )
+    val pageOptions = pageOptionsMap.keys.toList()
+
+    val initialSelectedText = pageOptionsMap.entries
+        .firstOrNull { it.value == initialRoute }
+        ?.key
+        ?: courseScheduleText
+
+    var dialogSelectedText by remember { mutableStateOf(initialSelectedText) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.dialog_title_set_launch_page)) },
+        text = {
+            NativeNumberPicker(
+                values = pageOptions,
+                selectedValue = dialogSelectedText,
+                onValueChange = { newValue ->
+                    dialogSelectedText = newValue
+                },
+                modifier = Modifier.fillMaxWidth()
+            )
+        },
+        confirmButton = {
+            Button(onClick = {
+                val selectedRoute = pageOptionsMap[dialogSelectedText] ?: Screen.CourseSchedule.route
+                onConfirm(selectedRoute)
+            }) {
+                Text(stringResource(R.string.action_confirm))
+            }
+        },
+        dismissButton = {
+            Button(onClick = onDismiss) {
+                Text(stringResource(R.string.action_cancel))
+            }
+        }
+    )
+}
+
+/**
  * 每周起始日选择器对话框
  */
 @Composable
@@ -512,7 +602,7 @@ private fun NumberPickerDialog(
     onDismiss: () -> Unit,
     onConfirm: (Int) -> Unit
 ) {
-    var dialogSelectedValue by remember { mutableStateOf(initialValue.coerceIn(range)) }
+    var dialogSelectedValue by remember { mutableIntStateOf(initialValue.coerceIn(range)) }
 
     AlertDialog(
         onDismissRequest = onDismiss,

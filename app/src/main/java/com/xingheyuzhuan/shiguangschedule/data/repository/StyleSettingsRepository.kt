@@ -181,8 +181,14 @@ class StyleSettingsRepository(
         removeLocationAt = remove
     }
 
-    /** * 设置背景壁纸的物理路径
-     */
+    suspend fun setCenterCourseContent(center: Boolean) = updateStyle {
+        centerCourseContent = center
+    }
+
+    suspend fun setDimNonCurrentWeekCourses(dim: Boolean) = updateStyle {
+        dimNonCurrentWeekCourses = dim
+    }
+
     suspend fun setBackgroundImagePath(path: String) = updateStyle {
         backgroundImagePath = path
     }

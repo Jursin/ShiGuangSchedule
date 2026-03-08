@@ -9,16 +9,16 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.xingheyuzhuan.shiguangschedule.R
 import com.xingheyuzhuan.shiguangschedule.data.db.main.CourseWithWeeks
 import com.xingheyuzhuan.shiguangschedule.data.db.main.TimeSlot
-import androidx.compose.ui.res.stringResource
-import com.xingheyuzhuan.shiguangschedule.R
 
 /**
- * 冲突课程列表底部动作条。
+ * 课程选择底部动作条（用于同格多课程选择）。
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -30,12 +30,6 @@ fun ConflictCourseBottomSheet(
     onDismissRequest: () -> Unit
 ) {
     val isDarkTheme = isSystemInDarkTheme()
-
-    val conflictTitleColor = if (isDarkTheme) {
-        style.conflictCourseColorDark
-    } else {
-        style.conflictCourseColor
-    }
 
     val fallbackColorAdapted = if (isDarkTheme) {
         style.courseColorMaps.first().dark
@@ -50,19 +44,13 @@ fun ConflictCourseBottomSheet(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 32.dp),
+                .padding(bottom = 28.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(
-                text = stringResource(R.string.title_course_conflict),
-                style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier.padding(16.dp),
-                color = conflictTitleColor
-            )
             LazyColumn(
                 modifier = Modifier.fillMaxWidth(),
-                contentPadding = PaddingValues(horizontal = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 items(courses) { courseWithWeeks ->
                     val course = courseWithWeeks.course
@@ -71,16 +59,19 @@ fun ConflictCourseBottomSheet(
 
                     val startSlot = timeSlots.find { it.number == course.startSection }?.startTime ?: "N/A"
                     val endSlot = timeSlots.find { it.number == course.endSection }?.endTime ?: "N/A"
+                    val weeksText = stringResource(
+                        R.string.label_weeks_format,
+                        formatWeekRanges(courseWithWeeks.weeks.map { it.weekNumber })
+                            .ifBlank { stringResource(R.string.label_none) }
+                    )
 
                     val colorIndex = course.colorInt.takeIf { it in style.courseColorMaps.indices }
-
                     val cardBaseColor = colorIndex?.let { index ->
                         val dualColor = style.courseColorMaps[index]
                         if (isDarkTheme) dualColor.dark else dualColor.light
                     } ?: fallbackColorAdapted
 
                     val cardColor = cardBaseColor.copy(alpha = style.courseBlockAlpha)
-
                     val textColor = MaterialTheme.colorScheme.onSurface
 
                     Card(
@@ -90,10 +81,7 @@ fun ConflictCourseBottomSheet(
                         colors = CardDefaults.cardColors(containerColor = cardColor),
                         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                     ) {
-                        Column(
-                            modifier = Modifier.padding(16.dp)
-                        ) {
-                            // 课程名称
+                        Column(modifier = Modifier.padding(14.dp)) {
                             Text(
                                 text = course.name,
                                 style = MaterialTheme.typography.titleMedium,
@@ -102,10 +90,10 @@ fun ConflictCourseBottomSheet(
                                 overflow = TextOverflow.Ellipsis,
                                 color = textColor
                             )
-                            Spacer(Modifier.height(8.dp))
+
+                            Spacer(Modifier.height(6.dp))
 
                             if (isCustomTimeCourse) {
-                                // 自定义时间课程：直接显示时间范围
                                 Text(
                                     text = "${course.customStartTime} - ${course.customEndTime}",
                                     style = MaterialTheme.typography.bodySmall,
@@ -113,35 +101,34 @@ fun ConflictCourseBottomSheet(
                                     fontWeight = FontWeight.SemiBold
                                 )
                             } else {
-                                // 标准节次课程：显示节次和标准时间段
                                 Text(
                                     text = stringResource(
                                         R.string.course_time_description,
-                                        course.startSection!!, // 对应 %1$s (起始节次)
-                                        course.endSection!!,   // 对应 %2$s (结束节次)
-                                        startSlot,           // 对应 %3$s (起始时间)
-                                        endSlot              // 对应 %4$s (结束时间)
+                                        course.startSection!!,
+                                        course.endSection!!,
+                                        startSlot,
+                                        endSlot
                                     ),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = textColor
                                 )
                             }
 
-                            // 详细信息 - 地点
                             Text(
-                                text = stringResource(
-                                    R.string.course_position_prefix,
-                                    course.position
-                                ),
+                                text = weeksText,
                                 style = MaterialTheme.typography.bodySmall,
                                 color = textColor
                             )
-                            // 详细信息 - 老师
+
+                            Spacer(Modifier.height(2.dp))
+
                             Text(
-                                text = stringResource(
-                                    R.string.course_teacher_prefix,
-                                    course.teacher
-                                ),
+                                text = stringResource(R.string.course_position_prefix, course.position),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = textColor
+                            )
+                            Text(
+                                text = stringResource(R.string.course_teacher_prefix, course.teacher),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = textColor
                             )
@@ -152,3 +139,27 @@ fun ConflictCourseBottomSheet(
         }
     }
 }
+
+private fun formatWeekRanges(weeks: List<Int>): String {
+    if (weeks.isEmpty()) return ""
+
+    val sorted = weeks.distinct().sorted()
+    val ranges = mutableListOf<String>()
+    var start = sorted.first()
+    var end = start
+
+    for (i in 1 until sorted.size) {
+        val value = sorted[i]
+        if (value == end + 1) {
+            end = value
+        } else {
+            ranges += if (start == end) "$start" else "$start-$end"
+            start = value
+            end = value
+        }
+    }
+    ranges += if (start == end) "$start" else "$start-$end"
+
+    return ranges.joinToString(",")
+}
+

@@ -25,6 +25,10 @@
     <string name="nav_course_schedule">課表</string>
     <string name="nav_settings">我的</string>
     <string name="title_today_schedule">今日課表</string>
+    <string name="today_period_morning">上午</string>
+    <string name="today_period_noon">中午</string>
+    <string name="today_period_afternoon">下午</string>
+    <string name="today_period_evening">晚上</string>
     <string name="text_no_courses_today">今天沒有課程</string>
     <string name="title_vacation_until_start">假期中（距離開學還有%1$s天）</string>
     <string name="title_semester_not_set">請設定開學日期</string>
@@ -175,6 +179,9 @@
     <!-- 設定選項 -->
     <string name="title_schedule_settings">課程表設定</string>
     <string name="section_title_general_settings">一般設定</string>
+    <string name="item_launch_page">啟動頁面</string>
+    <string name="desc_launch_page">設定應用啟動時預設開啟的頁面</string>
+    <string name="dialog_title_set_launch_page">設定啟動頁面</string>
     <string name="item_show_weekends">是否顯示週末</string>
     <string name="desc_show_weekends">開啟後，課程表中將顯示週末的課程安排</string>
     <string name="item_set_start_date">設定開學日期</string>
@@ -307,6 +314,7 @@
     <string name="label_special_thanks">特別鳴謝</string>
     <string name="text_acknowledgment_body">衷心感謝為本應用軟體和教務適配程式碼倉庫的開發和維護做出貢獻的每一位開發者。您的奉獻是應用程式持續更新和完善的動力！</string>
     <string name="item_github_repo">本專案GitHub倉庫</string>
+    <string name="item_open_website">打開網站</string>
     <string name="item_open_source_licenses">檢視開放原始碼授權</string>
     <string name="title_open_source_licenses">開放原始碼授權</string>
     <string name="item_update_repo">更新教務適配倉庫</string>
@@ -441,6 +449,9 @@
     <string name="style_category_grid_size">網格尺寸</string>
     <string name="style_category_course_block">課程塊配置</string>
     <string name="style_category_color_scheme">顏色方案 (點擊圓形編輯)</string>
+    <string name="label_section_height">節次列高</string>
+    <string name="label_time_column_width">時間列寬</string>
+    <string name="label_day_header_height">日期頭高</string>
     <string name="label_wallpaper">課表背景桌布</string>
     <string name="desc_wallpaper_set">已設置 (長按可清除)</string>
     <string name="desc_wallpaper_unset">未設置 (點擊選擇圖片)</string>
@@ -448,9 +459,8 @@
     <string name="label_hide_date_under_day">隱藏日期 (週幾下方)</string>
     <string name="label_hide_grid_lines">隱藏網格線</string>
     <string name="label_show_start_time">顯示課程格開始時間</string>
-    <string name="label_section_height">格子高度</string>
-    <string name="label_time_column_width">側邊欄寬度</string>
-    <string name="label_day_header_height">頂部表頭高度</string>
+    <string name="label_center_course_content">內容置中</string>
+    <string name="label_dim_non_current_week_courses">淡化顯示非本週課程</string>
     <string name="label_hide_location">隱藏上課地點</string>
     <string name="label_hide_teacher">隱藏授課老師</string>
     <string name="label_remove_location_at">移除地點前的 @ 符號</string>
@@ -489,5 +499,7 @@
     <string name="quick_delete_success">課表清理成功</string>
     <string name="error_load_failed">初始化失敗，請重試</string>
     <string name="error_op_failed">操作失敗: %1$s</string>
+    <string name="label_non_current_week">（非本週）</string>
+    <string name="text_header_year_format">%1$d年</string>
 
 </resources>

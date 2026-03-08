@@ -17,4 +17,5 @@ data class AppSettings(
     val skippedDates: Set<String>? = null, //跳过的日期
     val autoModeEnabled: Boolean = false, // 上课时行为模式的总开关状态
     val autoControlMode: String = "DND", // 控制上课时采取的具体模式 ("DND" 或 "SILENT")
+    val launchPageRoute: String = "course_schedule" // 应用启动时默认进入的页面路由
 )

@@ -22,6 +22,7 @@ import androidx.compose.material.icons.filled.Code
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Language
+import androidx.compose.material.icons.filled.OpenInBrowser
 import androidx.compose.material.icons.filled.PeopleAlt
 import androidx.compose.material.icons.filled.Update
 import androidx.compose.material3.AlertDialog
@@ -68,6 +69,7 @@ import com.xingheyuzhuan.shiguangschedule.tool.UpdateChecker.Companion.UPDATE_CH
 import kotlinx.coroutines.launch
 
 private const val GITHUB_REPO_URL = "https://github.com/XingHeYuZhuan/shiguangschedule"
+private const val WEBSITE_URL = "https://sgschedule.jursin.top/"
 
 @Composable
 private fun SettingListItem(
@@ -220,8 +222,6 @@ private fun UpdateResultDialog(
     onDismiss: () -> Unit,
     onDownloadClick: (String) -> Unit
 ) {
-    val context = LocalContext.current
-
     // 检查中和空闲状态不显示弹窗
     if (!showDialog || updateStatus is UpdateStatus.Checking || updateStatus is UpdateStatus.Idle) {
         if (showDialog && updateStatus is UpdateStatus.Checking) {
@@ -252,7 +252,7 @@ private fun UpdateResultDialog(
         }
         is UpdateStatus.Latest -> {
             title = stringResource(R.string.dialog_current_version_latest)
-            text = context.getString(R.string.label_version_prefix, updateStatus.versionName)
+            text = stringResource(R.string.label_version_prefix, updateStatus.versionName)
             confirmButton = null
         }
         is UpdateStatus.Error -> {
@@ -450,6 +450,17 @@ fun MoreOptionsScreen(navController: NavController) {
                         icon = Icons.Default.Update,
                         title = stringResource(R.string.item_check_software_update),
                         onClick = onCheckClick,
+                        showDivider = true
+                    )
+
+                    // 打开网站
+                    SettingListItem(
+                        icon = Icons.Default.OpenInBrowser,
+                        title = stringResource(R.string.item_open_website),
+                        onClick = {
+                            val intent = Intent(Intent.ACTION_VIEW, WEBSITE_URL.toUri())
+                            context.startActivity(intent)
+                        },
                         showDivider = true
                     )
 

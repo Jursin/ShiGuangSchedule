@@ -42,7 +42,9 @@ data class ScheduleGridStyleComposed(
 
     val hideLocation: Boolean,       // 是否隐藏上课地点
     val hideTeacher: Boolean,        // 是否隐藏授课老师
-    val removeLocationAt: Boolean    // 是否移除地点前的 @ 符号
+    val removeLocationAt: Boolean,
+    val centerCourseContent: Boolean,
+    val dimNonCurrentWeekCourses: Boolean
 ) {
     companion object {
         /**
@@ -73,6 +75,8 @@ data class ScheduleGridStyleComposed(
                 hideLocation = this.hideLocation,
                 hideTeacher = this.hideTeacher,
                 removeLocationAt = this.removeLocationAt,
+                centerCourseContent = this.centerCourseContent,
+                dimNonCurrentWeekCourses = this.dimNonCurrentWeekCourses,
                 backgroundImagePath = this.backgroundImagePath ?: "",
             )
         }

@@ -30,7 +30,8 @@ data class MergedCourseBlock(
     val endSection: Float,
     val courses: List<CourseWithWeeks>,
     val isConflict: Boolean = false,
-    val needsProportionalRendering: Boolean = false
+    val needsProportionalRendering: Boolean = false,
+    val isCurrentWeek: Boolean = true
 )
 
 data class WeeklyScheduleUiState(
@@ -54,7 +55,7 @@ class WeeklyScheduleViewModel(
     private val appSettingsRepository: AppSettingsRepository,
     private val courseTableRepository: CourseTableRepository,
     private val timeSlotRepository: TimeSlotRepository,
-    private val styleSettingsRepository: StyleSettingsRepository
+    styleSettingsRepository: StyleSettingsRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(WeeklyScheduleUiState())
@@ -81,26 +82,48 @@ class WeeklyScheduleViewModel(
 
     /**
      * 实现三周滑动窗口预加载
-     * 监听当前页日期，同时拉取 [前一周, 本周, 后一周] 的数据并转为 Map 缓存
+     * 获取所有课程数据，为三周窗口分别生成处理结果
      */
+    @OptIn(ExperimentalCoroutinesApi::class)
     private val currentCoursesFlow = combine(
         _pagerMondayDate,
         appSettingsFlow,
         courseTableConfigFlow,
-        timeSlotsFlow
-    ) { date, settings, config, slots ->
+        timeSlotsFlow,
+        styleFlow
+    ) { date, settings, config, slots, style ->
         val tableId = settings.currentCourseTableId
         if (tableId != null && config != null) {
-            // 定义窗口日期列表
-            val window = listOf(date.minusWeeks(1), date, date.plusWeeks(1))
+            // 获取该课表的所有课程（包含所有周次）
+            courseTableRepository.getCoursesWithWeeksByTableId(tableId)
+                .map { allCourses ->
+                    // 为三周窗口中的每一周单独处理数据
+                    val window = listOf(date.minusWeeks(1), date, date.plusWeeks(1))
+                    val result: MutableMap<String, List<MergedCourseBlock>> = mutableMapOf()
 
-            // 为窗口内的每一周开启数据监听并合并成 Map
-            combine(window.map { day ->
-                courseTableRepository.getCoursesWithWeeksByDate(tableId, day, config)
-                    .map { courses -> day.toString() to mergeCourses(courses, slots) }
-            }) { results -> results.toMap() }
+                    window.forEach { day ->
+                        val targetWeek = appSettingsRepository.getWeekIndexAtDate(
+                            targetDate = day,
+                            startDateStr = config.semesterStartDate,
+                            firstDayOfWeekInt = config.firstDayOfWeek
+                        )
+                        val actualCurrentWeek = appSettingsRepository.getWeekIndexAtDate(
+                            targetDate = LocalDate.now(),
+                            startDateStr = config.semesterStartDate,
+                            firstDayOfWeekInt = config.firstDayOfWeek
+                        )
+                        result[day.toString()] = mergeCourses(
+                            courses = allCourses,
+                            timeSlots = slots,
+                            pageWeekNumber = targetWeek,
+                            actualCurrentWeekNumber = actualCurrentWeek,
+                            dimNonCurrentWeekCourses = style.dimNonCurrentWeekCourses
+                        )
+                    }
+                    result
+                }
         } else {
-            flowOf(emptyMap())
+            flowOf(emptyMap<String, List<MergedCourseBlock>>())
         }
     }.flatMapLatest { it }
 
@@ -217,11 +240,28 @@ class WeeklyScheduleViewModel(
 
     /**
      * 合并并处理课程块
+     * @param courses 该周的课程列表（包含所有周次的课程）
+     * @param timeSlots 时间段列表
+     * @param pageWeekNumber 该页面对应的周号（用于判断课程是否为本周课程，用于淡化显示）
+     * @param actualCurrentWeekNumber 实际当前周号（已废弃，保留用于向后兼容）
      */
-    fun mergeCourses(courses: List<CourseWithWeeks>, timeSlots: List<TimeSlot>): List<MergedCourseBlock> {
+    fun mergeCourses(
+        courses: List<CourseWithWeeks>,
+        timeSlots: List<TimeSlot>,
+        pageWeekNumber: Int?,
+        @Suppress("UNUSED_PARAMETER") actualCurrentWeekNumber: Int? = null,
+        dimNonCurrentWeekCourses: Boolean = false
+    ): List<MergedCourseBlock> {
         if (timeSlots.isEmpty()) return emptyList()
         val formatter = DateTimeFormatter.ofPattern("HH:mm")
 
+        // 判断课程是否在页面周内（用于淡化判断，基于页面所显示的周号）
+        fun CourseWithWeeks.isInPageWeek(): Boolean {
+            val week = pageWeekNumber ?: return true
+            return weeks.isEmpty() || weeks.any { it.weekNumber == week }
+        }
+
+        // 处理所有课程（不进行周次过滤，所有课程都会被显示）
         val normalized = courses.mapNotNull { cw ->
             try {
                 val c = cw.course
@@ -237,7 +277,7 @@ class WeeklyScheduleViewModel(
 
                 if (endScale - startScale < 0.5f) endScale = startScale + 0.5f
                 Triple(cw, startScale, endScale)
-            } catch (e: Exception) { null }
+            } catch (_: Exception) { null }
         }
 
         val result = mutableListOf<MergedCourseBlock>()
@@ -253,13 +293,31 @@ class WeeklyScheduleViewModel(
                 val minS = overlaps.minOf { it.second }
                 val maxE = overlaps.maxOf { it.third }
 
+                val overlapCourses = overlaps.map { it.first }.distinct()
+                val samePageWeekCount = overlapCourses.count { it.isInPageWeek() }
+                val isConflict = if (dimNonCurrentWeekCourses) {
+                    // 淡化模式下，仅同页面周课程重叠才标记冲突
+                    samePageWeekCount > 1
+                } else {
+                    overlapCourses.size > 1
+                }
+
+                // 混占逻辑：有本周课程就按本周显示
+                val hasCurrentWeekCourse = samePageWeekCount > 0
+                val displayAsCurrentWeek = if (dimNonCurrentWeekCourses && hasCurrentWeekCourse) {
+                    true
+                } else {
+                    overlapCourses.all { it.isInPageWeek() }
+                }
+
                 result.add(MergedCourseBlock(
                     day = day,
                     startSection = (minS - 1f).coerceIn(0f, timeSlots.size.toFloat() - 0.5f),
                     endSection = (maxE - 1f).coerceIn(0.5f, timeSlots.size.toFloat()),
-                    courses = overlaps.map { it.first }.distinct(),
-                    isConflict = overlaps.size > 1,
-                    needsProportionalRendering = overlaps.any { it.first.course.isCustomTime }
+                    courses = overlapCourses,
+                    isConflict = isConflict,
+                    needsProportionalRendering = overlaps.any { it.first.course.isCustomTime },
+                    isCurrentWeek = displayAsCurrentWeek
                 ))
                 usedIds.addAll(overlaps.map { it.first.course.id })
             }

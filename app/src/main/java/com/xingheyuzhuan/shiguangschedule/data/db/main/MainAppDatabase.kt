@@ -22,7 +22,7 @@ import kotlinx.coroutines.launch
         AppSettings::class,
         CourseTableConfig::class
     ],
-    version = 3,
+    version = 4,
     exportSchema = false
 )
 @TypeConverters(Converters::class)

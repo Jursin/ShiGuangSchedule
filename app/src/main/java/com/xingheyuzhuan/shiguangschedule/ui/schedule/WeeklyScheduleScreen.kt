@@ -1,14 +1,18 @@
 package com.xingheyuzhuan.shiguangschedule.ui.schedule
 
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -115,16 +119,19 @@ fun WeeklyScheduleScreen(
                 val isTransparent = composedStyle.backgroundImagePath.isNotEmpty()
                 CenterAlignedTopAppBar(
                     title = {
-                        Text(
-                            text = uiState.weekTitle,
-                            modifier = Modifier.clickable {
-                                if (!uiState.isSemesterSet || uiState.semesterStartDate == null) {
-                                    navController.navigate(Screen.Settings.route)
-                                } else {
-                                    showWeekSelector = true
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(text = uiState.weekTitle)
+                            IconButton(
+                                onClick = {
+                                    showWeekSelector = !showWeekSelector
                                 }
+                            ) {
+                                Icon(
+                                    imageVector = if (showWeekSelector) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
+                                    contentDescription = stringResource(R.string.title_select_week)
+                                )
                             }
-                        )
+                        }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = if (isTransparent) Color.Transparent else MaterialTheme.colorScheme.surface,
@@ -175,12 +182,14 @@ fun WeeklyScheduleScreen(
                     style = composedStyle,
                     dates = pageDateStrings,
                     timeSlots = uiState.timeSlots,
-                    mergedCourses = pageCourses, // 绑定本页专属数据
+                    mergedCourses = pageCourses,
                     showWeekends = uiState.showWeekends,
                     todayIndex = pageTodayIndex,
                     firstDayOfWeek = uiState.firstDayOfWeek,
+                    headerYear = pageMondayDate.year,
+                    displayWeekNumber = uiState.weekIndexInPager,
                     onCourseBlockClicked = { mergedBlock ->
-                        if (mergedBlock.isConflict) {
+                        if (mergedBlock.courses.size > 1) {
                             conflictCoursesToShow = mergedBlock.courses
                             showConflictBottomSheet = true
                         } else {

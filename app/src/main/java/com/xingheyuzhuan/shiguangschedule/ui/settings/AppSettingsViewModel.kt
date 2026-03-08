@@ -66,6 +66,20 @@ class SettingsViewModel(
     }
 
     /**
+     * UI 事件：更新应用启动页。
+     */
+    fun onLaunchPageSelected(route: String) {
+        viewModelScope.launch {
+            val normalizedRoute = when (route) {
+                "today_schedule" -> "today_schedule"
+                else -> "course_schedule"
+            }
+            val updatedSettings = appSettingsState.value.copy(launchPageRoute = normalizedRoute)
+            appSettingsRepository.insertOrUpdateAppSettings(updatedSettings)
+        }
+    }
+
+    /**
      * UI 事件：更新是否显示周末。
      * 逻辑：现在更新的是 CourseTableConfig
      */

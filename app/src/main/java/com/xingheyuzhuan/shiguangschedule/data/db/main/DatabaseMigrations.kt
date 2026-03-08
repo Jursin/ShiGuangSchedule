@@ -155,9 +155,25 @@ val MIGRATION_2_3 = object : Migration(2, 3) {
     }
 }
 
+/**
+ * 数据库版本 3 迁移到 版本 4 的迁移代码。
+ * 为 app_settings 表增加启动页字段。
+ */
+val MIGRATION_3_4 = object : Migration(3, 4) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL(
+            """
+            ALTER TABLE app_settings
+            ADD COLUMN launchPageRoute TEXT NOT NULL DEFAULT 'course_schedule'
+            """.trimIndent()
+        )
+    }
+}
+
 
 // 【集中管理所有迁移对象】
 val ALL_MIGRATIONS = arrayOf(
     MIGRATION_1_2,
     MIGRATION_2_3,
+    MIGRATION_3_4,
 )

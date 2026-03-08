@@ -1,0 +1,14 @@
+<resources>
+    <string name="today_period_morning">上午</string>
+    <string name="today_period_noon">中午</string>
+    <string name="today_period_afternoon">下午</string>
+    <string name="today_period_evening">晚上</string>
+    <string name="label_center_course_content">内容居中</string>
+    <string name="label_dim_non_current_week_courses">淡化显示非本周课程</string>
+    <string name="label_non_current_week">（非本周）</string>
+    <string name="text_header_year_format">%1$d年</string>
+    <string name="label_section_height">格子高度</string>
+    <string name="label_time_column_width">侧边栏宽度</string>
+    <string name="label_day_header_height">顶部表头高度</string>
+    <string name="item_open_website">打开网站</string>
+</resources>

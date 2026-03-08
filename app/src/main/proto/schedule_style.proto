@@ -49,4 +49,6 @@ message ScheduleGridStyleProto {
   bool remove_location_at = 18;  // 是否移除地点前的 @ 符号 (默认 false，即不移除)
 
   string background_image_path = 19; // 存储图片在私有目录下的绝对路径
+  bool center_course_content = 21;
+  bool dim_non_current_week_courses = 22;
 }

@@ -152,25 +152,25 @@ private fun SettingsListContent(
     viewModel: StyleSettingsViewModel,
     onPick: (category: Int, isDark: Boolean, index: Int) -> Unit
 ) {
-    var showResetDialog by remember { mutableStateOf(false) }
+    val showResetDialog = remember { mutableStateOf(false) }
     val context = LocalContext.current
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
         uri?.let { viewModel.updateWallpaper(context, it) }
     }
 
-    if (showResetDialog) {
+    if (showResetDialog.value) {
         AlertDialog(
-            onDismissRequest = { showResetDialog = false },
+            onDismissRequest = { showResetDialog.value = false },
             title = { Text(stringResource(R.string.dialog_reset_title)) },
             text = { Text(stringResource(R.string.dialog_reset_message)) },
             confirmButton = {
                 TextButton(onClick = {
                     viewModel.resetStyleSettings()
-                    showResetDialog = false
+                    showResetDialog.value = false
                 }) { Text(stringResource(R.string.action_confirm), color = MaterialTheme.colorScheme.error) }
             },
             dismissButton = {
-                TextButton(onClick = { showResetDialog = false }) { Text(stringResource(R.string.action_cancel)) }
+                TextButton(onClick = { showResetDialog.value = false }) { Text(stringResource(R.string.action_cancel)) }
             }
         )
     }
@@ -180,7 +180,7 @@ private fun SettingsListContent(
         verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
         OutlinedButton(
-            onClick = { showResetDialog = true },
+            onClick = { showResetDialog.value = true },
             modifier = Modifier.fillMaxWidth(),
             colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
             border = BorderStroke(1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.5f))
@@ -210,6 +210,8 @@ private fun SettingsListContent(
         HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
 
         Text(stringResource(R.string.style_category_course_block), style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary)
+        StyleSwitchItem(stringResource(R.string.label_center_course_content), currentStyle.centerCourseContent) { viewModel.updateCenterCourseContent(it) }
+        StyleSwitchItem(stringResource(R.string.label_dim_non_current_week_courses), currentStyle.dimNonCurrentWeekCourses) { viewModel.updateDimNonCurrentWeekCourses(it) }
         StyleSwitchItem(stringResource(R.string.label_show_start_time), currentStyle.showStartTime) { viewModel.updateShowStartTime(it) }
         StyleSwitchItem(stringResource(R.string.label_hide_location), currentStyle.hideLocation) { viewModel.updateHideLocation(it) }
         StyleSwitchItem(stringResource(R.string.label_hide_teacher), currentStyle.hideTeacher) { viewModel.updateHideTeacher(it) }
@@ -329,6 +331,8 @@ private fun ScheduleGridContent(
             showWeekends = demoUiState.showWeekends,
             todayIndex = dynamicTodayIndex,
             firstDayOfWeek = demoUiState.firstDayOfWeek,
+            headerYear = localDates.firstOrNull()?.year,
+            displayWeekNumber = demoUiState.currentWeekNumber,
             onCourseBlockClicked = { },
             onGridCellClicked = { _, _ -> },
             onTimeSlotClicked = { }
